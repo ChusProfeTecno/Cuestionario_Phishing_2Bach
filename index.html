@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cuestionario: El phishing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --fondo:#0d2b1e; --fondo2:#123a29; --blanco:#ffffff; --texto:#1b2420; --suave:#56635c;
+    --verde:#1f7a4d; --verde-claro:#e3f4ea; --rojo:#b3261e; --rojo-claro:#fbe4e2;
+    --ambar:#8a5a00; --ambar-claro:#fff1cc; --acento:#f2c94c; --borde:#d5ddd8;
+    --radio:14px; --sombra:0 6px 24px rgba(0,0,0,.18);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--fondo);color:var(--blanco);font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:17px;line-height:1.5;min-height:100vh}
+  h1,h2,h3{font-family:"Playfair Display",Georgia,serif;margin:0}
+  button{font-family:inherit}
+  .oculto{display:none !important}
+  .contenedor{max-width:760px;margin:0 auto;padding:16px}
+
+  /* ---------- Barra superior ---------- */
+  .barra{position:sticky;top:0;z-index:20;background:var(--fondo2);border-bottom:1px solid rgba(255,255,255,.12)}
+  .barra .contenedor{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:10px;padding-bottom:10px}
+  .barra h1{font-size:1.15rem;line-height:1.2}
+  .barra small{display:block;font-family:"Plus Jakarta Sans",sans-serif;font-size:.78rem;opacity:.8;font-weight:500}
+  .derecha{display:flex;align-items:center;gap:10px}
+  .timer{font-variant-numeric:tabular-nums;font-weight:700;font-size:1.25rem;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.12);color:var(--blanco);min-width:84px;text-align:center}
+  .timer.aviso{background:var(--acento);color:#1b1500}
+  .timer.peligro{background:#e5483f;color:#fff;animation:parpadeo .6s steps(2,start) infinite}
+  @keyframes parpadeo{to{visibility:hidden}}
+  .btn-prof{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:999px;padding:6px 12px;font-size:.8rem;cursor:pointer}
+
+  /* ---------- Tarjetas ---------- */
+  .tarjeta{background:var(--blanco);color:var(--texto);border-radius:var(--radio);box-shadow:var(--sombra);padding:24px}
+  .tarjeta + .tarjeta{margin-top:16px}
+
+  /* ---------- Pantalla inicial ---------- */
+  .inicio{padding-top:28px}
+  .inicio h2{font-size:1.8rem;color:var(--fondo);margin-bottom:6px}
+  .inicio p.intro{color:var(--suave);margin:0 0 18px}
+  .reglas{background:#f3f7f4;border-radius:10px;padding:12px 16px;margin:0 0 20px;font-size:.92rem;color:var(--texto)}
+  .reglas ul{margin:6px 0 0;padding-left:20px}
+  .campo{margin-bottom:14px}
+  .campo label{display:block;font-weight:600;margin-bottom:4px}
+  .campo input{width:100%;font:inherit;padding:12px 14px;border:2px solid var(--borde);border-radius:10px;background:#fff;color:var(--texto)}
+  .campo input:focus{outline:none;border-color:var(--verde);box-shadow:0 0 0 3px rgba(31,122,77,.25)}
+  .campo input[aria-invalid="true"]{border-color:var(--rojo)}
+  .error{color:var(--rojo);font-size:.85rem;margin-top:4px;min-height:1.1em}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:1rem;border:none;border-radius:12px;padding:14px 22px;cursor:pointer;min-height:50px}
+  .btn:focus-visible,.opcion input:focus-visible + span,.btn-prof:focus-visible{outline:3px solid var(--acento);outline-offset:2px}
+  .btn-primario{background:var(--verde);color:#fff}
+  .btn-primario:hover:not(:disabled){background:#186640}
+  .btn-secundario{background:#e8eeea;color:var(--texto)}
+  .btn-secundario:hover:not(:disabled){background:#dbe4de}
+  .btn-entregar{background:var(--acento);color:#1b1500}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .ancho{width:100%}
+
+  /* ---------- Progreso ---------- */
+  .progreso{margin:18px 0 12px}
+  .progreso-texto{display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:6px;opacity:.92}
+  .progreso-barra{height:10px;background:rgba(255,255,255,.15);border-radius:999px;overflow:hidden}
+  .progreso-relleno{height:100%;background:var(--acento);width:0;transition:width .25s}
+
+  /* ---------- Pregunta ---------- */
+  .tipo{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:var(--verde-claro);color:var(--verde);margin-bottom:10px}
+  .enunciado{font-size:1.15rem;font-weight:600;margin:0 0 6px}
+  .aviso-multiple{font-size:.88rem;color:var(--ambar);background:var(--ambar-claro);display:inline-block;padding:4px 10px;border-radius:8px;margin:4px 0 6px;font-weight:600}
+  fieldset{border:none;padding:0;margin:12px 0 0}
+  legend{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .opcion{display:block;margin-bottom:10px;cursor:pointer}
+  .opcion input{position:absolute;opacity:0;width:1px;height:1px}
+  .opcion span{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:2px solid var(--borde);border-radius:12px;background:#fff;transition:border-color .15s,background .15s}
+  .opcion span::before{content:"";flex:0 0 22px;height:22px;margin-top:1px;border:2px solid #8a978f;background:#fff}
+  .opcion input[type=radio] + span::before{border-radius:50%}
+  .opcion input[type=checkbox] + span::before{border-radius:6px}
+  .opcion:hover span{border-color:#9fb3a7}
+  .opcion input:checked + span{border-color:var(--verde);background:var(--verde-claro)}
+  .opcion input[type=radio]:checked + span::before{border-color:var(--verde);background:radial-gradient(circle,var(--verde) 45%,#fff 50%)}
+  .opcion input[type=checkbox]:checked + span::before{border-color:var(--verde);background:var(--verde) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12l4 4 10-10' stroke='white' stroke-width='3' fill='none'/%3E%3C/svg%3E") center/16px no-repeat}
+  .opcion input:disabled + span{cursor:not-allowed;opacity:.7}
+  .navegacion{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+  .navegacion .btn-entregar{grid-column:1 / -1}
+  @media (min-width:620px){.navegacion{grid-template-columns:1fr 1fr 1fr}.navegacion .btn-entregar{grid-column:auto}}
+
+  /* ---------- Overlays y modales ---------- */
+  .overlay{position:fixed;inset:0;z-index:50;background:rgba(6,22,15,.88);display:flex;align-items:center;justify-content:center;padding:16px}
+  .modal{background:#fff;color:var(--texto);border-radius:var(--radio);box-shadow:var(--sombra);padding:26px;max-width:440px;width:100%;text-align:center}
+  .modal h2{font-size:1.4rem;margin-bottom:8px;color:var(--fondo)}
+  .modal p{margin:0 0 18px;color:var(--suave)}
+  .modal .botones{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .spinner{width:46px;height:46px;border:5px solid rgba(255,255,255,.25);border-top-color:var(--acento);border-radius:50%;animation:gira 0.9s linear infinite;margin:0 auto 16px}
+  @keyframes gira{to{transform:rotate(360deg)}}
+  .evaluando{text-align:center;color:#fff;font-size:1.3rem;font-weight:700}
+  .candado{font-size:3rem;line-height:1;margin-bottom:8px}
+
+  /* ---------- Resultados ---------- */
+  .resultado{text-align:center;padding-top:28px}
+  .resultado .nombre{font-size:1.3rem;color:var(--fondo);margin-bottom:2px}
+  .resultado .curso{color:var(--suave);margin:0 0 14px}
+  .nota{font-family:"Playfair Display",serif;font-size:4rem;font-weight:700;line-height:1;margin:6px 0 2px}
+  .nota.aprobado{color:var(--verde)} .nota.suspenso{color:var(--rojo)}
+  .nota-sub{color:var(--suave);margin-bottom:18px}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px}
+  @media (min-width:620px){.stats{grid-template-columns:repeat(4,1fr)}}
+  .stat{background:#f3f7f4;border-radius:12px;padding:12px 8px}
+  .stat b{display:block;font-size:1.6rem;line-height:1.1}
+  .stat span{font-size:.82rem;color:var(--suave)}
+  .stat.ok b{color:var(--verde)} .stat.ko b{color:var(--rojo)} .stat.par b{color:var(--ambar)}
+  .nota-correccion{font-size:.9rem;color:var(--suave);margin-top:8px}
+
+  /* ---------- Revisión ---------- */
+  .revision h2{color:#fff;font-size:1.5rem;margin:24px 0 12px}
+  .rev-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+  .rev-num{font-size:.8rem;font-weight:700;color:var(--suave);text-transform:uppercase;letter-spacing:.04em}
+  .puntos{white-space:nowrap;font-weight:700;font-size:.9rem;padding:4px 10px;border-radius:999px}
+  .p-ok{background:var(--verde-claro);color:var(--verde)}
+  .p-ko{background:var(--rojo-claro);color:var(--rojo)}
+  .p-cero{background:#eceff0;color:#3d4743}
+  .p-par{background:var(--ambar-claro);color:var(--ambar)}
+  .badge-parcial{display:inline-block;margin-left:6px;font-size:.72rem;font-weight:700;text-transform:uppercase;background:var(--ambar);color:#fff;padding:3px 8px;border-radius:999px;vertical-align:middle}
+  .rev-bloque{margin-top:10px;font-size:.95rem}
+  .rev-bloque strong{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--suave);margin-bottom:4px}
+  .rev-bloque ul{margin:0;padding-left:20px}
+  .r-correcta{color:var(--verde);font-weight:600}
+  .r-mal{color:var(--rojo)}
+  .no-respondida{display:inline-block;background:#eceff0;color:#3d4743;font-weight:700;font-size:.85rem;padding:3px 10px;border-radius:8px}
+  .porque{margin-top:10px;font-size:.9rem;color:var(--suave);border-left:3px solid var(--borde);padding-left:10px}
+
+  /* ---------- Panel profesor ---------- */
+  .panel{max-width:760px;width:100%;max-height:90vh;overflow:auto;text-align:left}
+  .panel h2{text-align:left}
+  .panel .fila{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .panel label.check{display:flex;gap:8px;align-items:center;font-weight:600;margin:10px 0}
+  .panel .item{border-top:1px solid var(--borde);padding:10px 0;font-size:.92rem}
+  .panel .item ol{margin:6px 0 0;padding-left:22px}
+  .panel .ok{color:var(--verde);font-weight:700}
+  .btn-peq{min-height:40px;padding:8px 14px;font-size:.88rem}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+
+<!-- ===================== BARRA SUPERIOR ===================== -->
+<header class="barra">
+  <div class="contenedor">
+    <h1 id="tituloBarra">El phishing <small>TDA II · 2º Bachillerato</small></h1>
+    <div class="derecha">
+      <button type="button" id="btnProfesor" class="btn-prof oculto">Profesor</button>
+      <div id="timer" class="timer" role="timer" aria-label="Tiempo restante">4:00</div>
+    </div>
+  </div>
+</header>
+<div id="avisoTiempo" class="sr" aria-live="assertive"></div>
+
+<main>
+  <!-- ===================== PANTALLA INICIAL ===================== -->
+  <section id="pantallaInicio" class="contenedor inicio">
+    <div class="tarjeta">
+      <h2>Cuestionario: El phishing</h2>
+      <p class="intro">Ingeniería social y ciberseguridad en la vida digital</p>
+      <div class="reglas">
+        <b>Antes de empezar:</b>
+        <ul>
+          <li>20 preguntas y <b>4 minutos</b>. Al acabar el tiempo, el cuestionario se bloquea.</li>
+          <li>Acierto: <b>+0,5</b>. Fallo o en blanco: <b>−0,25</b>.</li>
+          <li>En las de varias opciones puedes sacar media puntuación (+0,25).</li>
+        </ul>
+      </div>
+      <div id="formAlumno" role="form" aria-label="Datos del alumno">
+        <div class="campo">
+          <label for="inNombre">Nombre completo</label>
+          <input id="inNombre" name="nombre" type="text" autocomplete="name" required aria-describedby="errNombre">
+          <div id="errNombre" class="error" aria-live="polite"></div>
+        </div>
+        <div class="campo">
+          <label for="inCurso">Curso</label>
+          <input id="inCurso" name="curso" type="text" placeholder="Ej.: 2º Bachillerato" required aria-describedby="errCurso">
+          <div id="errCurso" class="error" aria-live="polite"></div>
+        </div>
+        <div class="campo">
+          <label for="inGrupo">Grupo</label>
+          <input id="inGrupo" name="grupo" type="text" placeholder="Ej.: A" required aria-describedby="errGrupo">
+          <div id="errGrupo" class="error" aria-live="polite"></div>
+        </div>
+        <button id="btnComenzar" type="button" class="btn btn-primario ancho" disabled>COMENZAR</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CUESTIONARIO ===================== -->
+  <section id="pantallaCuestionario" class="contenedor oculto" aria-label="Cuestionario">
+    <div class="progreso">
+      <div class="progreso-texto">
+        <span id="progresoPregunta">Pregunta 1 de 20</span>
+        <span id="progresoPct">0 % completado</span>
+      </div>
+      <div class="progreso-barra" role="progressbar" id="barraProgreso" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Porcentaje completado">
+        <div class="progreso-relleno" id="rellenoProgreso"></div>
+      </div>
+    </div>
+    <div id="tarjetaPregunta" class="tarjeta" tabindex="-1"></div>
+    <div class="navegacion">
+      <button type="button" id="btnAnterior" class="btn btn-secundario">← Anterior</button>
+      <button type="button" id="btnSiguiente" class="btn btn-secundario">Siguiente →</button>
+      <button type="button" id="btnEntregar" class="btn btn-entregar">ENTREGAR</button>
+    </div>
+  </section>
+
+  <!-- ===================== RESULTADO ===================== -->
+  <section id="pantallaResultado" class="contenedor resultado oculto">
+    <div class="tarjeta">
+      <h2 class="nombre" id="resNombre"></h2>
+      <p class="curso" id="resCurso"></p>
+      <div class="nota" id="resNota">0,00</div>
+      <div class="nota-sub">Nota final sobre 10</div>
+      <div class="stats">
+        <div class="stat"><b id="resRespondidas">0</b><span>Respondidas</span></div>
+        <div class="stat ok"><b id="resAciertos">0</b><span>Aciertos</span></div>
+        <div class="stat ko"><b id="resFallos">0</b><span>Fallos</span></div>
+        <div class="stat par"><b id="resParciales">0</b><span>Parciales (+0,25)</span></div>
+      </div>
+      <button type="button" id="btnCorreccion" class="btn btn-primario ancho">CORRECCIÓN</button>
+      <p class="nota-correccion">El profesor te indicará cuándo pulsar este botón</p>
+    </div>
+  </section>
+
+  <!-- ===================== REVISIÓN ===================== -->
+  <section id="pantallaRevision" class="contenedor revision oculto">
+    <h2>Corrección</h2>
+    <div id="listaRevision"></div>
+  </section>
+</main>
+
+<!-- ===================== OVERLAYS ===================== -->
+<div id="ovConfirmar" class="overlay oculto" role="dialog" aria-modal="true" aria-labelledby="tConfirmar">
+  <div class="modal">
+    <h2 id="tConfirmar">¿Seguro que quieres entregar el cuestionario?</h2>
+    <p id="txtConfirmar"></p>
+    <div class="botones">
+      <button type="button" id="btnNoEntregar" class="btn btn-secundario">Seguir respondiendo</button>
+      <button type="button" id="btnSiEntregar" class="btn btn-primario">Sí, entregar</button>
+    </div>
+  </div>
+</div>
+
+<div id="ovEvaluando" class="overlay oculto" role="alert" aria-live="assertive">
+  <div class="evaluando"><div class="spinner"></div>Evaluando…</div>
+</div>
+
+<div id="ovBloqueo" class="overlay oculto" role="alertdialog" aria-modal="true" aria-labelledby="tBloqueo">
+  <div class="modal">
+    <div class="candado" aria-hidden="true">🔒</div>
+    <h2 id="tBloqueo">¡Se acabó el tiempo!</h2>
+    <p>El cuestionario se ha bloqueado. Las preguntas sin responder cuentan como incorrectas.</p>
+    <button type="button" id="btnVerNota" class="btn btn-primario">Ver mi nota</button>
+  </div>
+</div>
+
+<div id="ovProfesor" class="overlay oculto" role="dialog" aria-modal="true" aria-labelledby="tProfesor">
+  <div class="modal panel">
+    <h2 id="tProfesor">Modo profesor</h2>
+    <label class="check"><input type="checkbox" id="chkSinTiempo"> Desactivar el temporizador</label>
+    <div class="fila">
+      <button type="button" id="btnExportJSON" class="btn btn-secundario btn-peq">Exportar resultados (JSON)</button>
+      <button type="button" id="btnExportCSV" class="btn btn-secundario btn-peq">Exportar resultados (CSV)</button>
+      <button type="button" id="btnBorrarRes" class="btn btn-secundario btn-peq">Borrar resultados de este equipo</button>
+    </div>
+    <p id="infoResultados" style="font-size:.88rem;color:var(--suave);margin:0 0 6px"></p>
+    <h3 style="font-size:1.1rem;margin:14px 0 4px">Banco de preguntas y clave (orden original)</h3>
+    <div id="bancoProfesor"></div>
+    <div class="fila"><button type="button" id="btnCerrarProf" class="btn btn-primario btn-peq">Cerrar</button></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   CONFIGURACIÓN
+   ===================================================================== */
+const DEBUG = false;                       // true → muestra en consola orden, clave y cálculo de la nota
+const CONFIG = {
+  titulo: 'El phishing',
+  nivel: 'TDA II · 2º Bachillerato',
+  segundos: 4 * 60,                        // 4 minutos
+  claveAlmacen: 'cuestionario_phishing_2bach_resultados'
+};
+
+/* =====================================================================
+   BANCO DE PREGUNTAS
+   Fuente: "El_Phishing_TDA_2_Bachillerato.docx" y
+           "Solucionario_Analisis_Caso_Phishing.docx".
+   tipo: 'unica' | 'multiple' | 'vf'
+   correctas: índices (en el orden original) de las opciones correctas
+   ===================================================================== */
+const BANCO = [
+  /* ---------- ELECCIÓN ÚNICA (10) ---------- */
+  { id: 1, tipo: 'unica',
+    enunciado: '¿Qué explota principalmente un ataque de phishing?',
+    opciones: [
+      'La confianza, la prisa o el desconocimiento de la persona que está al otro lado de la pantalla',
+      'Un fallo técnico del sistema operativo del ordenador',
+      'Una debilidad en el cifrado de las conexiones HTTPS',
+      'Un error en la configuración del router de casa'
+    ], correctas: [0],
+    porque: 'El phishing es ingeniería social: no ataca al ordenador, ataca a la persona.' },
+
+  { id: 2, tipo: 'unica',
+    enunciado: '¿De dónde viene la palabra «phishing»?',
+    opciones: [
+      'De «fishing» (pescar), cambiando la f por ph como guiño al argot informático de los 90 (phreaking)',
+      'De «phone fishing», porque los primeros ataques se hacían por teléfono',
+      'De las siglas de un antiguo protocolo de correo electrónico',
+      'Del nombre del primer programa que envió correos fraudulentos'
+    ], correctas: [0],
+    porque: 'La imagen es literal: el atacante lanza un anzuelo (correo, SMS, enlace) y espera a que alguien «pique».' },
+
+  { id: 3, tipo: 'unica',
+    enunciado: 'Un atacante investiga a la directora de una empresa y le envía un correo personalizado con su nombre, su cargo y datos reales. ¿Qué modalidad es?',
+    opciones: ['Whaling', 'Phishing genérico', 'Clone phishing', 'Smishing'],
+    correctas: [0],
+    porque: 'El whaling es spear phishing dirigido a altos cargos (directivos, «peces gordos»).' },
+
+  { id: 4, tipo: 'unica',
+    enunciado: '¿Qué modalidad lleva al usuario a una web falsa manipulando el sistema de nombres de dominio (DNS), sin que tenga que hacer clic en ningún enlace?',
+    opciones: ['Pharming', 'Vishing', 'Spear phishing', 'Clone phishing'],
+    correctas: [0],
+    porque: 'El pharming actúa sobre la web/DNS: la víctima escribe bien la dirección y aun así acaba en la web falsa.' },
+
+  { id: 5, tipo: 'unica',
+    enunciado: 'Te llega un correo idéntico a una factura que ya recibiste la semana pasada de tu compañía de móvil, pero esta vez el PDF adjunto es distinto. ¿Qué modalidad puede ser?',
+    opciones: ['Clone phishing', 'Whaling', 'Pharming', 'Vishing'],
+    correctas: [0],
+    porque: 'El clone phishing copia un correo legítimo ya recibido y cambia el enlace o el adjunto por uno malicioso.' },
+
+  { id: 6, tipo: 'unica',
+    enunciado: 'Una web falsa usa la dirección «arnazon.es», con «rn» en lugar de «m», para parecer la tienda real. ¿Qué técnica es?',
+    opciones: [
+      'Typosquatting (dominios similares con caracteres parecidos)',
+      'Suplantación de remitente (email spoofing)',
+      'Uso de un acortador de URL',
+      'Página clonada con certificado HTTPS'
+    ], correctas: [0],
+    porque: 'Se registran dominios casi idénticos al original cambiando una letra o usando caracteres parecidos (homógrafos).' },
+
+  { id: 7, tipo: 'unica',
+    enunciado: 'Por Instagram te llega: «¡Has ganado una skin exclusiva! Pulsa aquí para reclamarla». ¿Qué técnica de persuasión usa principalmente?',
+    opciones: ['Curiosidad o recompensa', 'Autoridad', 'Miedo a las consecuencias', 'Confianza y suplantación'],
+    correctas: [0],
+    porque: 'Promete un premio para que pulses sin pensar: es la técnica de curiosidad o recompensa del apartado 2.' },
+
+  { id: 8, tipo: 'unica',
+    enunciado: 'Te llega un SMS sin ninguna falta de ortografía que te saluda por tu nombre: «Tu paquete no se ha podido entregar porque falta pagar 1 € de tasas. Paga aquí:» y un enlace. ¿Qué conclusión es correcta?',
+    opciones: [
+      'Que no tenga faltas no lo hace fiable: hay que fijarse en otras pistas, como el enlace o la petición de pago',
+      'Si incluye tu nombre real, el mensaje es legítimo',
+      'Al no haber errores, lo más probable es que sea un aviso real',
+      'Solo es fraude si el mensaje amenaza con un plazo o un bloqueo'
+    ], correctas: [0],
+    porque: 'La buena redacción y tu nombre (que pueden sacar de datos robados en otras filtraciones) sirven para darte confianza. Ninguna empresa pide pagos por un enlace de SMS.' },
+
+  { id: 9, tipo: 'unica',
+    enunciado: 'Pulsas un enlace que parece de tu banco y la web te pide «el código que acabas de recibir por SMS para confirmar tu identidad». ¿Por qué es tan grave dárselo?',
+    opciones: [
+      'Porque es el segundo factor de seguridad (MFA): con él pueden confirmar pagos en tu nombre',
+      'Porque así pueden saber tu número de teléfono',
+      'Porque con él pueden ver tus SMS antiguos',
+      'Porque así consiguen el certificado HTTPS de la web falsa'
+    ], correctas: [0],
+    porque: 'La autenticación multifactor protege aunque roben la contraseña… salvo que también les des el código.' },
+
+  { id: 10, tipo: 'unica',
+    enunciado: 'Entras en una web que es una copia exacta de la de tu banco: mismo logo, mismos colores y sin faltas de ortografía. ¿Dónde puedes encontrar la pista de que es falsa?',
+    opciones: [
+      'En la barra de direcciones: la URL no es la del banco y el navegador avisa «No es seguro»',
+      'En el logo, que estaba mal copiado',
+      'En los colores, distintos de los de la web real',
+      'En las faltas de ortografía de la página de acceso'
+    ], correctas: [0],
+    porque: 'Es una página clonada: copiar el diseño de una web es muy fácil, así que hay que mirar siempre la barra de direcciones.' },
+
+  /* ---------- ELECCIÓN MÚLTIPLE (7) ---------- */
+  { id: 11, tipo: 'multiple',
+    enunciado: '¿Cuáles de estas son señales de alarma habituales en un mensaje de phishing?',
+    opciones: [
+      'Urgencia extrema o amenazas de bloqueo o pérdida inmediata',
+      'Petición directa de contraseñas, códigos de verificación o datos bancarios',
+      'Archivos adjuntos inesperados, especialmente .exe, .zip o macros de Office',
+      'Que el mensaje incluya el logo de la empresa',
+      'Que la web muestre el candado de HTTPS'
+    ], correctas: [0, 1, 2],
+    porque: 'El logo y el candado no son señales de alarma… pero tampoco garantizan nada: se copian o se consiguen fácilmente.' },
+
+  { id: 12, tipo: 'multiple',
+    enunciado: '¿Qué medidas de protección frente al phishing recoge el documento?',
+    opciones: [
+      'Activar la autenticación multifactor (MFA/2FA)',
+      'No hacer clic directamente: entrar al servicio escribiendo la dirección en el navegador',
+      'Usar un gestor de contraseñas',
+      'Mantener el software y el navegador actualizados',
+      'Responder al remitente para preguntarle si el mensaje es real',
+      'Fiarse de la web si tiene el candado de HTTPS'
+    ], correctas: [0, 1, 2, 3],
+    porque: 'Responder al atacante no sirve (y en muchos casos es un «noreply»). El candado no demuestra que la web sea legítima.' },
+
+  { id: 13, tipo: 'multiple',
+    enunciado: '¿Qué afirmaciones sobre el candado de HTTPS son correctas?',
+    opciones: [
+      'Solo certifica que la conexión está cifrada',
+      'Hoy es gratuito y sencillo conseguir un certificado HTTPS para una web fraudulenta',
+      'Una web fraudulenta también puede mostrar el candado',
+      'Garantiza que la web pertenece a la empresa que dice ser',
+      'Solo pueden tenerlo los bancos y los organismos oficiales'
+    ], correctas: [0, 1, 2],
+    porque: 'HTTPS cifra la conexión, pero no dice nada de quién está al otro lado.' },
+
+  { id: 14, tipo: 'multiple',
+    enunciado: '¿Cuáles de estas modalidades utilizan el correo electrónico como canal?',
+    opciones: ['Spear phishing', 'Whaling', 'Clone phishing', 'Phishing genérico', 'Smishing', 'Vishing'],
+    correctas: [0, 1, 2, 3],
+    porque: 'El smishing usa SMS y el vishing, llamadas de voz.' },
+
+  { id: 15, tipo: 'multiple',
+    enunciado: '¿Qué aparece en el documento sobre el marco legal del phishing en España?',
+    opciones: [
+      'Puede constituir un delito de estafa informática',
+      'Puede encajar en el delito de descubrimiento y revelación de secretos (apoderarse de datos personales sin consentimiento)',
+      'Las empresas que sufren una fuga de datos tienen obligaciones según el RGPD y la LOPDGDD',
+      'No es delito si la víctima entrega sus datos voluntariamente',
+      'Solo pueden denunciarlo las empresas, no los particulares'
+    ], correctas: [0, 1, 2],
+    porque: 'Las víctimas pueden denunciar ante la Policía Nacional, la Guardia Civil o a través de la web de INCIBE.' },
+
+  { id: 16, tipo: 'multiple',
+    enunciado: 'Recibes este correo. Remitente: «Grupo S.A <wqds@frenchdistrict.com>». Saludo: «Estimado Cliente». Texto: «Su tarjeta será suspendida !! Pulse el botón». Botón: «RESPONDER ENCUESTA». ¿Qué pistas delatan que es un fraude?',
+    opciones: [
+      'La dirección del remitente no pertenece a ningún banco',
+      'El saludo es genérico: no usa tu nombre',
+      'Te amenaza con suspender la tarjeta para meterte prisa',
+      'El botón «RESPONDER ENCUESTA» no tiene nada que ver con un problema de tu tarjeta',
+      'Usa un tono educado («Estimado»)',
+      'Está escrito en español'
+    ], correctas: [0, 1, 2, 3],
+    porque: 'Remitente raro, saludo genérico, amenaza y un botón que no encaja: cuatro señales de alarma en un solo correo.' },
+
+  { id: 17, tipo: 'multiple',
+    enunciado: 'Te llega un SMS con un enlace: «La entrega se ha suspendido porque su pedido no tiene número de casa. Revise sus datos y pague 0,99 € de reenvío». ¿Qué deberías hacer?',
+    opciones: [
+      'No pulsar el enlace',
+      'Comprobar el pedido entrando tú en la web o la app oficial de la tienda',
+      'Reportarlo a INCIBE, borrarlo y bloquear el número (en caso de duda, llamar al 017)',
+      'Pagar los 0,99 € de reenvío, porque es muy poco dinero',
+      'Contestar al SMS con tu dirección completa'
+    ], correctas: [0, 1, 2],
+    porque: 'Ninguna empresa de paquetería cobra el reenvío pidiéndote la tarjeta por un enlace de SMS.' },
+
+  /* ---------- VERDADERO / FALSO (3) ---------- */
+  { id: 18, tipo: 'vf',
+    enunciado: 'Si un correo llega desde una dirección que termina exactamente en el dominio de tu banco (por ejemplo, @tubanco.es), puedes estar seguro de que lo envía el banco.',
+    opciones: ['Verdadero', 'Falso'], correctas: [1],
+    porque: 'Falso. El protocolo SMTP no obliga a verificar el remitente: el campo «De:» se puede falsificar (email spoofing).' },
+
+  { id: 19, tipo: 'vf',
+    enunciado: 'El smishing es el phishing que llega por SMS, normalmente con enlaces acortados.',
+    opciones: ['Verdadero', 'Falso'], correctas: [0],
+    porque: 'Verdadero. Es igual que el phishing, pero por mensaje de texto.' },
+
+  { id: 20, tipo: 'vf',
+    enunciado: 'El texto visible de un enlace (por ejemplo, «Accede a tu banco») siempre coincide con la dirección real a la que lleva.',
+    opciones: ['Verdadero', 'Falso'], correctas: [1],
+    porque: 'Falso. Hay que pasar el ratón por encima, sin hacer clic, para ver la URL real.' }
+];
+
+/* =====================================================================
+   ESTADO
+   ===================================================================== */
+const estado = {
+  alumno: null,
+  orden: [],               // índices de BANCO en el orden que verá el alumno
+  ordenOpciones: {},       // id → array de índices originales de opciones barajados
+  respuestas: {},          // id → array de índices originales seleccionados
+  actual: 0,
+  bloqueado: false,
+  entregado: false,
+  restante: CONFIG.segundos,
+  intervalo: null,
+  sinTiempo: false,
+  resultado: null
+};
+const MODO_PROFESOR = new URLSearchParams(location.search).get('profesor') === '1';
+const $ = (id) => document.getElementById(id);
+
+/* =====================================================================
+   UTILIDADES
+   ===================================================================== */
+function barajar(arr) {                  // Fisher-Yates
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+const fmt = (n) => n.toFixed(2).replace('.', ',');
+const fmtPuntos = (n) => n === 0 ? '0' : (n > 0 ? '+' : '−') + String(Math.abs(n)).replace('.', ',');
+const etiquetaTipo = { unica: 'Elección única', multiple: 'Elección múltiple', vf: 'Verdadero o falso' };
+function mostrar(id) { $(id).classList.remove('oculto'); }
+function ocultar(id) { $(id).classList.add('oculto'); }
+function el(tag, props = {}, hijos = []) {
+  const n = document.createElement(tag);
+  Object.entries(props).forEach(([k, v]) => {
+    if (k === 'class') n.className = v;
+    else if (k === 'text') n.textContent = v;
+    else n.setAttribute(k, v);
+  });
+  hijos.forEach(h => n.appendChild(typeof h === 'string' ? document.createTextNode(h) : h));
+  return n;
+}
+
+/* =====================================================================
+   MÓDULO: PREPARACIÓN DE PREGUNTAS (aleatorización)
+   ===================================================================== */
+function prepararPreguntas() {
+  estado.orden = barajar(BANCO.map((_, i) => i));
+  BANCO.forEach(p => {
+    const indices = p.opciones.map((_, i) => i);
+    // Verdadero/Falso se mantiene en su orden natural; el resto se baraja.
+    estado.ordenOpciones[p.id] = p.tipo === 'vf' ? indices : barajar(indices);
+    estado.respuestas[p.id] = [];
+  });
+  if (DEBUG) {
+    console.log('Orden original:', BANCO.map(p => p.id));
+    console.log('Orden barajado:', estado.orden.map(i => BANCO[i].id));
+    console.table(BANCO.map(p => ({ id: p.id, tipo: p.tipo, correctas: p.correctas.map(c => p.opciones[c]).join(' | ') })));
+  }
+}
+
+/* =====================================================================
+   MÓDULO: INTERFAZ DE PREGUNTAS
+   ===================================================================== */
+function pintarPregunta() {
+  const p = BANCO[estado.orden[estado.actual]];
+  const tarjeta = $('tarjetaPregunta');
+  tarjeta.innerHTML = '';
+  const idEnun = 'enun-' + p.id;
+
+  tarjeta.appendChild(el('span', { class: 'tipo', text: etiquetaTipo[p.tipo] }));
+  tarjeta.appendChild(el('p', { class: 'enunciado', id: idEnun, text: `${estado.actual + 1}. ${p.enunciado}` }));
+  if (p.tipo === 'multiple') tarjeta.appendChild(el('div', { class: 'aviso-multiple', text: 'Puedes seleccionar varias opciones' }));
+
+  const fs = el('fieldset', { 'aria-labelledby': idEnun });
+  const tipoInput = p.tipo === 'multiple' ? 'checkbox' : 'radio';
+  estado.ordenOpciones[p.id].forEach(idx => {
+    const input = el('input', { type: tipoInput, name: 'p' + p.id, value: String(idx) });
+    if (estado.respuestas[p.id].includes(idx)) input.checked = true;
+    if (estado.bloqueado) input.disabled = true;
+    input.addEventListener('change', () => registrarRespuesta(p, idx, input.checked));
+    fs.appendChild(el('label', { class: 'opcion' }, [input, el('span', { text: p.opciones[idx] })]));
+  });
+  tarjeta.appendChild(fs);
+  actualizarNavegacion();
+}
+
+function registrarRespuesta(p, idx, marcado) {
+  if (estado.bloqueado) return;
+  if (p.tipo === 'multiple') {
+    const set = new Set(estado.respuestas[p.id]);
+    marcado ? set.add(idx) : set.delete(idx);
+    estado.respuestas[p.id] = [...set];
+  } else {
+    estado.respuestas[p.id] = [idx];
+  }
+  actualizarProgreso();
+}
+
+function contarRespondidas() {
+  return BANCO.filter(p => estado.respuestas[p.id].length > 0).length;
+}
+
+function actualizarProgreso() {
+  const total = BANCO.length;
+  const pct = Math.round(contarRespondidas() / total * 100);
+  $('progresoPregunta').textContent = `Pregunta ${estado.actual + 1} de ${total}`;
+  $('progresoPct').textContent = `${pct} % completado`;
+  $('rellenoProgreso').style.width = pct + '%';
+  $('barraProgreso').setAttribute('aria-valuenow', pct);
+}
+
+function actualizarNavegacion() {
+  $('btnAnterior').disabled = estado.bloqueado || estado.actual === 0;
+  $('btnSiguiente').disabled = estado.bloqueado || estado.actual === BANCO.length - 1;
+  $('btnEntregar').disabled = estado.bloqueado;
+  actualizarProgreso();
+}
+
+function irA(delta) {
+  const nuevo = estado.actual + delta;
+  if (nuevo < 0 || nuevo >= BANCO.length || estado.bloqueado) return;
+  estado.actual = nuevo;
+  pintarPregunta();
+  $('tarjetaPregunta').focus({ preventScroll: true });
+  window.scrollTo(0, 0);
+}
+
+function bloquearCuestionario() {
+  estado.bloqueado = true;
+  document.querySelectorAll('#tarjetaPregunta input').forEach(i => i.disabled = true);
+  actualizarNavegacion();
+}
+
+/* =====================================================================
+   MÓDULO: TEMPORIZADOR
+   ===================================================================== */
+function pintarTimer() {
+  const t = $('timer');
+  if (estado.sinTiempo) { t.textContent = 'Sin límite'; t.className = 'timer'; return; }
+  const m = Math.floor(estado.restante / 60), s = estado.restante % 60;
+  t.textContent = `${m}:${String(s).padStart(2, '0')}`;
+  t.className = 'timer' + (estado.restante <= 10 ? ' peligro' : estado.restante <= 60 ? ' aviso' : '');
+  if (estado.restante === 60) $('avisoTiempo').textContent = 'Queda un minuto';
+  if (estado.restante === 10) $('avisoTiempo').textContent = 'Quedan diez segundos';
+}
+
+function iniciarTimer() {
+  pintarTimer();
+  if (estado.sinTiempo) return;
+  estado.intervalo = setInterval(() => {
+    estado.restante--;
+    pintarTimer();
+    if (estado.restante <= 0) { detenerTimer(); tiempoAgotado(); }
+  }, 1000);
+}
+
+function detenerTimer() { clearInterval(estado.intervalo); estado.intervalo = null; }
+
+function tiempoAgotado() {
+  if (estado.entregado) return;
+  bloquearCuestionario();
+  ocultar('ovConfirmar');
+  mostrar('ovBloqueo');
+  $('btnVerNota').focus();
+}
+
+/* =====================================================================
+   MÓDULO: CORRECCIÓN Y PUNTUACIÓN
+   ===================================================================== */
+function puntuarPregunta(p) {
+  const marcadas = estado.respuestas[p.id];
+  if (marcadas.length === 0) return { puntos: -0.25, estado: 'blanco' };
+
+  if (p.tipo !== 'multiple') {
+    return p.correctas.includes(marcadas[0]) ? { puntos: 0.5, estado: 'correcta' } : { puntos: -0.25, estado: 'incorrecta' };
+  }
+  const buenas = marcadas.filter(m => p.correctas.includes(m)).length;
+  const malas = marcadas.length - buenas;
+  const todas = buenas === p.correctas.length;
+  if (todas && malas === 0) return { puntos: 0.5, estado: 'correcta' };
+  if (todas && malas > 0)   return { puntos: 0.25, estado: 'parcial' };
+  if (buenas > 0 && malas === 0) return { puntos: 0.25, estado: 'parcial' };
+  if (buenas > 0 && malas > 0)   return { puntos: 0, estado: 'incorrecta' };
+  return { puntos: -0.25, estado: 'incorrecta' };            // todo incorrecto
+}
+
+function evaluar() {
+  const detalle = estado.orden.map(i => {
+    const p = BANCO[i];
+    return { id: p.id, ...puntuarPregunta(p) };
+  });
+  const suma = detalle.reduce((a, d) => a + d.puntos, 0);
+  const nota = Math.max(0, Math.min(10, suma));                // 20 × 0,5 = 10 máximo
+  const res = {
+    fecha: new Date().toISOString(),
+    nombre: estado.alumno.nombre, curso: estado.alumno.curso, grupo: estado.alumno.grupo,
+    nota: Math.round(nota * 100) / 100,
+    respondidas: contarRespondidas(),
+    aciertos: detalle.filter(d => d.estado === 'correcta').length,
+    fallos: detalle.filter(d => d.estado === 'incorrecta' || d.estado === 'blanco').length,
+    parciales: detalle.filter(d => d.estado === 'parcial').length,
+    tiempoUsado: CONFIG.segundos - estado.restante,
+    detalle
+  };
+  if (DEBUG) {
+    console.table(detalle.map(d => ({ pregunta: d.id, estado: d.estado, puntos: d.puntos })));
+    console.log('Suma bruta:', suma, '→ Nota final:', res.nota);
+  }
+  return res;
+}
+
+function guardarResultado(res) {
+  try {
+    const lista = JSON.parse(localStorage.getItem(CONFIG.claveAlmacen) || '[]');
+    lista.push(res);
+    localStorage.setItem(CONFIG.claveAlmacen, JSON.stringify(lista));
+  } catch (e) { /* el almacenamiento puede no estar disponible: se ignora */ }
+}
+
+/* =====================================================================
+   MÓDULO: ENTREGA Y PANTALLAS FINALES
+   ===================================================================== */
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyjF1DEy7uA2PkzsS5lxTC5NuepctYBL9ptabZt1svDqPwxMldT4LI7jAXugS8bMUij/exec';
+
+/* Envía el resultado a Google Sheets (Apps Script doPost).
+   - Content-Type text/plain evita la petición previa CORS, que Apps Script no acepta.
+   - mode 'no-cors': el navegador no deja leer la respuesta, pero los datos llegan.
+   - Los nombres de campo coinciden con el script de la guía (enBlanco, no blancos). */
+function enviarASheets(r) {
+  if (!SHEETS_URL || SHEETS_URL.includes('TU_URL')) return;
+  const enBlanco = r.detalle.filter(d => d.estado === 'blanco').length;
+  const datos = {
+    nombre: r.nombre,
+    curso: r.curso,
+    grupo: r.grupo,
+    nota: r.nota,
+    aciertos: r.aciertos,
+    parciales: r.parciales,
+    fallos: r.fallos - enBlanco,          // solo las respondidas mal
+    enBlanco: enBlanco,
+    respondidas: r.respondidas
+  };
+  try {
+    fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(datos)
+    }).catch(err => { if (DEBUG) console.warn('Error enviando a Sheets:', err); });
+  } catch (e) { /* sin conexión: el resultado sigue guardado en este equipo */ }
+}
+
+function pedirConfirmacion() {
+  const sin = BANCO.length - contarRespondidas();
+  $('txtConfirmar').textContent = sin > 0
+    ? `Te quedan ${sin} pregunta${sin > 1 ? 's' : ''} sin responder. Contarán como incorrectas (−0,25).`
+    : 'Has respondido todas las preguntas.';
+  mostrar('ovConfirmar');
+  $('btnSiEntregar').focus();
+}
+
+function entregar() {
+  if (estado.entregado) return;
+  estado.entregado = true;
+  detenerTimer();
+  bloquearCuestionario();
+  ocultar('ovConfirmar'); ocultar('ovBloqueo');
+  mostrar('ovEvaluando');
+  setTimeout(() => {
+    estado.resultado = evaluar();
+    guardarResultado(estado.resultado);
+    enviarASheets(estado.resultado);
+    ocultar('ovEvaluando');
+    pintarResultado();
+  }, 1400);
+}
+
+function pintarResultado() {
+  const r = estado.resultado;
+  ocultar('pantallaCuestionario');
+  $('resNombre').textContent = r.nombre;
+  $('resCurso').textContent = `${r.curso} · Grupo ${r.grupo}`;
+  $('resNota').textContent = fmt(r.nota);
+  $('resNota').className = 'nota ' + (r.nota >= 5 ? 'aprobado' : 'suspenso');
+  $('resRespondidas').textContent = `${r.respondidas}/${BANCO.length}`;
+  $('resAciertos').textContent = r.aciertos;
+  $('resFallos').textContent = r.fallos;
+  $('resParciales').textContent = r.parciales;
+  mostrar('pantallaResultado');
+  window.scrollTo(0, 0);
+  $('btnCorreccion').focus();
+}
+
+function pintarRevision() {
+  const cont = $('listaRevision');
+  cont.innerHTML = '';
+  estado.resultado.detalle.forEach((d, n) => {
+    const p = BANCO.find(x => x.id === d.id);
+    const marcadas = estado.respuestas[p.id];
+    const clase = d.estado === 'parcial' ? 'p-par' : d.puntos > 0 ? 'p-ok' : d.puntos < 0 ? 'p-ko' : 'p-cero';
+    const pts = el('span', { class: 'puntos ' + clase, text: fmtPuntos(d.puntos) + ' pts' });
+
+    const cab = el('div', { class: 'rev-cab' }, [el('span', { class: 'rev-num', text: `Pregunta ${n + 1} · ${etiquetaTipo[p.tipo]}` })]);
+    const der = el('div', {}, [pts]);
+    if (d.estado === 'parcial') der.appendChild(el('span', { class: 'badge-parcial', text: 'Parcial' }));
+    cab.appendChild(der);
+
+    const tuya = el('div', { class: 'rev-bloque' }, [el('strong', { text: 'Tu respuesta' })]);
+    if (marcadas.length === 0) tuya.appendChild(el('span', { class: 'no-respondida', text: 'No respondida' }));
+    else {
+      const ul = el('ul');
+      estado.ordenOpciones[p.id].filter(i => marcadas.includes(i)).forEach(i => {
+        const ok = p.correctas.includes(i);
+        ul.appendChild(el('li', { class: ok ? 'r-correcta' : 'r-mal', text: (ok ? '✔ ' : '✘ ') + p.opciones[i] }));
+      });
+      tuya.appendChild(ul);
+    }
+
+    const ulC = el('ul');
+    p.correctas.forEach(i => ulC.appendChild(el('li', { class: 'r-correcta', text: p.opciones[i] })));
+    const correcta = el('div', { class: 'rev-bloque' }, [el('strong', { text: p.correctas.length > 1 ? 'Respuestas correctas' : 'Respuesta correcta' }), ulC]);
+
+    cont.appendChild(el('article', { class: 'tarjeta' }, [
+      cab, el('p', { class: 'enunciado', text: p.enunciado }), tuya, correcta,
+      el('p', { class: 'porque', text: p.porque })
+    ]));
+  });
+  mostrar('pantallaRevision');
+  $('btnCorreccion').disabled = true;
+  $('pantallaRevision').scrollIntoView({ behavior: 'smooth' });
+}
+
+/* =====================================================================
+   MÓDULO: PANTALLA INICIAL
+   ===================================================================== */
+const campos = [
+  { input: 'inNombre', error: 'errNombre', msg: 'Escribe tu nombre completo.' },
+  { input: 'inCurso',  error: 'errCurso',  msg: 'Indica tu curso.' },
+  { input: 'inGrupo',  error: 'errGrupo',  msg: 'Indica tu grupo.' }
+];
+function datosCompletos() { return campos.every(c => $(c.input).value.trim() !== ''); }
+function validarCampo(c) {
+  const vacio = $(c.input).value.trim() === '';
+  $(c.input).setAttribute('aria-invalid', vacio ? 'true' : 'false');
+  $(c.error).textContent = vacio ? c.msg : '';
+  return !vacio;
+}
+function comenzar() {
+  if (estado.alumno) return;
+  const ok = campos.map(validarCampo).every(Boolean);
+  if (!ok) { $(campos.find(c => $(c.input).value.trim() === '').input).focus(); return; }
+  estado.alumno = { nombre: $('inNombre').value.trim(), curso: $('inCurso').value.trim(), grupo: $('inGrupo').value.trim() };
+  prepararPreguntas();
+  ocultar('pantallaInicio');                 // sin transición
+  mostrar('pantallaCuestionario');
+  window.scrollTo(0, 0);
+  estado.actual = 0;
+  pintarPregunta();
+  $('tarjetaPregunta').focus({ preventScroll: true });
+  iniciarTimer();
+}
+
+/* =====================================================================
+   MÓDULO: MODO PROFESOR (?profesor=1)
+   ===================================================================== */
+function leerResultados() {
+  try { return JSON.parse(localStorage.getItem(CONFIG.claveAlmacen) || '[]'); } catch (e) { return []; }
+}
+function descargar(nombre, contenido, tipo) {
+  const blob = new Blob([contenido], { type: tipo });
+  const a = el('a', { href: URL.createObjectURL(blob), download: nombre });
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function exportarJSON() { descargar('resultados_phishing.json', JSON.stringify(leerResultados(), null, 2), 'application/json'); }
+function exportarCSV() {
+  const filas = leerResultados();
+  const cab = ['fecha', 'nombre', 'curso', 'grupo', 'nota', 'respondidas', 'aciertos', 'fallos', 'parciales', 'tiempo_usado_s'];
+  const esc = v => `"${String(v).replace(/"/g, '""')}"`;
+  const csv = [cab.join(';')].concat(filas.map(r =>
+    [r.fecha, r.nombre, r.curso, r.grupo, String(r.nota).replace('.', ','), r.respondidas, r.aciertos, r.fallos, r.parciales, r.tiempoUsado].map(esc).join(';')
+  )).join('\r\n');
+  descargar('resultados_phishing.csv', '﻿' + csv, 'text/csv;charset=utf-8');
+}
+function pintarPanelProfesor() {
+  $('infoResultados').textContent = `Resultados guardados en este equipo: ${leerResultados().length}`;
+  $('chkSinTiempo').checked = estado.sinTiempo;
+  const cont = $('bancoProfesor');
+  cont.innerHTML = '';
+  BANCO.forEach(p => {
+    const ol = el('ol', { type: 'a' });
+    p.opciones.forEach((o, i) => ol.appendChild(el('li', { class: p.correctas.includes(i) ? 'ok' : '', text: o + (p.correctas.includes(i) ? '  ✔' : '') })));
+    cont.appendChild(el('div', { class: 'item' }, [el('b', { text: `${p.id}. [${etiquetaTipo[p.tipo]}] ` }), document.createTextNode(p.enunciado), ol]));
+  });
+}
+function initProfesor() {
+  if (!MODO_PROFESOR) return;
+  mostrar('btnProfesor');
+  $('btnProfesor').addEventListener('click', () => { pintarPanelProfesor(); mostrar('ovProfesor'); $('btnCerrarProf').focus(); });
+  $('btnCerrarProf').addEventListener('click', () => ocultar('ovProfesor'));
+  $('chkSinTiempo').addEventListener('change', e => {
+    estado.sinTiempo = e.target.checked;
+    if (estado.sinTiempo) detenerTimer();
+    else if (estado.alumno && !estado.entregado && !estado.intervalo) iniciarTimer();
+    pintarTimer();
+  });
+  $('btnExportJSON').addEventListener('click', exportarJSON);
+  $('btnExportCSV').addEventListener('click', exportarCSV);
+  $('btnBorrarRes').addEventListener('click', () => {
+    try { localStorage.removeItem(CONFIG.claveAlmacen); } catch (e) {}
+    pintarPanelProfesor();
+  });
+}
+
+/* =====================================================================
+   ARRANQUE
+   ===================================================================== */
+function init() {
+  campos.forEach(c => ['input', 'change', 'keyup'].forEach(ev => $(c.input).addEventListener(ev, () => {
+    $('btnComenzar').disabled = !datosCompletos();
+    if ($(c.input).value.trim() !== '') validarCampo(c);
+  })));
+  // Intro en cualquier campo = pulsar COMENZAR
+  campos.forEach(c => $(c.input).addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); comenzar(); }
+  }));
+  campos.forEach(c => $(c.input).addEventListener('blur', () => validarCampo(c)));
+  $('btnComenzar').addEventListener('click', comenzar);
+  $('btnAnterior').addEventListener('click', () => irA(-1));
+  $('btnSiguiente').addEventListener('click', () => irA(1));
+  $('btnEntregar').addEventListener('click', pedirConfirmacion);
+  $('btnNoEntregar').addEventListener('click', () => { ocultar('ovConfirmar'); $('btnEntregar').focus(); });
+  $('btnSiEntregar').addEventListener('click', entregar);
+  $('btnVerNota').addEventListener('click', entregar);
+  $('btnCorreccion').addEventListener('click', pintarRevision);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (!$('ovConfirmar').classList.contains('oculto')) ocultar('ovConfirmar');
+      if (!$('ovProfesor').classList.contains('oculto')) ocultar('ovProfesor');
+    }
+  });
+  initProfesor();
+  pintarTimer();
+}
+init();
+</script>
+</body>
+</html>
